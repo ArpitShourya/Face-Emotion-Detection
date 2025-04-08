@@ -12,7 +12,13 @@ class PreprocessData:
         self.NUM_AUGMENTS = 5
         self.source_train_dir = r"E:\EmotionDetection\Data\images\train"
         self.save_train_dir = r"E:\EmotionDetection\Data\processed\train"
-        self.csv_path = os.path.join(self.save_train_dir, "data.csv")
+
+        self.source_val_dir=r"E:\EmotionDetection\Data\images\validation"
+        self.save_val_dir=r"E:\EmotionDetection\Data\processed\validation"
+        
+        self.csv_train_path = os.path.join(self.save_train_dir, "data.csv")
+        self.csv_val_path=os.path.join(self.save_val_dir,"val.csv")
+        
         self.augment = A.Compose([
         A.HorizontalFlip(p=0.5),
         A.Rotate(limit=15, p=0.5),
@@ -20,7 +26,7 @@ class PreprocessData:
         A.GaussNoise(var_limit=(0.001, 0.01), p=0.3),
     ], additional_targets={'image': 'image'})
 
-    def preprocess(self):
+    def preprocess_train(self):
         #Create scaled Numpy Arrays
         for emotion in os.listdir(self.source_train_dir):
             emotion_folder = os.path.join(self.source_train_dir, emotion)
@@ -71,7 +77,7 @@ class PreprocessData:
                     except Exception as e:
                         print(f"Error processing {file_path}: {e}")
 
-        #creating csv data
+        #creating csv data(label encoding)
         emotions = sorted([d for d in os.listdir(self.save_train_dir) if os.path.isdir(os.path.join(self.save_train_dir, d))])
         label_encoder = LabelEncoder()
         label_encoder.fit(emotions)
@@ -81,7 +87,7 @@ class PreprocessData:
         print("Label Mapping:", label_map)
 
         # Step 3: Write CSV
-        with open(self.csv_path, mode='w', newline='') as file:
+        with open(self.csv_train_path, mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['path', 'label'])  # header
 
@@ -94,12 +100,62 @@ class PreprocessData:
                         rel_path = os.path.join(emotion, filename)
                         writer.writerow([rel_path, label])
 
-        print(f"CSV saved at: {self.csv_path}")
+        print(f"CSV saved at: {self.csv_train_path}")
+
+    def preprocess_val(self):
+        #Create scaled numpy data
+        for emotion in os.listdir(self.source_val_dir):
+            emotion_folder = os.path.join(self.source_val_dir, emotion)
+            save_emotion_folder = os.path.join(self.save_val_dir, emotion)
+
+            if os.path.isdir(emotion_folder):
+                os.makedirs(save_emotion_folder, exist_ok=True)  # Create target folder
+
+                for file in os.listdir(emotion_folder):
+                    file_path = os.path.join(emotion_folder, file)
+                    file_name, _ = os.path.splitext(file)
+                    save_path = os.path.join(save_emotion_folder, file_name + ".npy")
+
+                    try:
+                        with Image.open(file_path) as img:
+                            img = img.convert('L')  # Keep grayscale
+                            pixels = np.array(img, dtype=np.float32) / 255.0  # Normalize
+                            np.save(save_path, pixels)  # Save as .npy file
+                    except Exception as e:
+                        print(f"Error processing {file_path}: {e}")
+
+        #create val csv
+        emotions = sorted([d for d in os.listdir(self.save_val_dir) if os.path.isdir(os.path.join(self.save_val_dir, d))])
+        label_encoder = LabelEncoder()
+        label_encoder.fit(emotions)
+
+        # Optional: print label mapping
+        label_map = dict(zip(label_encoder.classes_, label_encoder.transform(label_encoder.classes_)))
+        print("Label Mapping:", label_map)
+
+        # Step 3: Write CSV
+        with open(self.csv_val_path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['path', 'label'])  # header
+
+            for emotion in emotions:
+                emotion_dir = os.path.join(self.save_val_dir, emotion)
+                label = label_encoder.transform([emotion])[0]
+
+                for filename in os.listdir(emotion_dir):
+                    if filename.endswith(".npy"):
+                        rel_path = os.path.join(emotion, filename)
+                        writer.writerow([rel_path, label])
+
+        print(f"CSV saved at: {self.csv_val_path}")
+        
 
 
 if __name__=="__main__":
     pd=PreprocessData()
-    pd.preprocess()
+    #pd.preprocess_train()
+    pd.preprocess_val()
+
 
         
 

@@ -10,7 +10,6 @@ Facial-Emotion-Recognition/
 ├── models/             # Saved model checkpoints and architectures
 ├── src/                # Training, evaluation, and utility scripts
 ├── notebooks/          # Colab notebooks for training & experiments
-├── outputs/            # Plots, logs, and metrics
 └── README.md
 ```
 
@@ -65,14 +64,12 @@ To accurately detect emotions from facial images using deep learning techniques.
    python main.py        
    ```
 
-4. Evaluate:
-   ```bash
-   python src/evaluate.py
-   ```
 
 ## 📊 Sample Results
 ![image](https://github.com/user-attachments/assets/6fb1beaa-9225-483d-adf2-bdf0e73ea464)
 ![image](https://github.com/user-attachments/assets/3e8527fc-a1d2-4e42-a0db-c783454a9f62)
+![image](https://github.com/user-attachments/assets/cc4cc2aa-7f5b-40d0-a12e-f0c2b4fb0cb0)
+![image](https://github.com/user-attachments/assets/4c74d9dc-1bae-446f-a743-557a325f7d49)
 
 
 ## 🚀 Future Plans
